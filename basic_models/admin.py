@@ -47,6 +47,24 @@ class DefaultModelAdmin(UserModelAdmin):
     """ModelAdmin subclass that will automatically update created_by or updated_by fields if they exist"""
     
     readonly_fields = ('created_at', 'created_by', 'updated_at', 'updated_by')
+    actions = UserModelAdmin.actions + [
+        'activate_objects',
+        'deactivate_objects',
+    ]
+
+    def activate_objects(self, request, queryset):
+        """Admin action to set is_active=True on objects"""
+        count = queryset.update(is_active=True)
+        suffix = count == 1 and "1 object was" or "%s objects were" % count
+        self.message_user(request, "%s marked as active." % suffix)
+    activate_objects.short_description = "Mark selected objects as active"
+
+    def deactivate_objects(self, request, queryset):
+        """Admin action to set is_active=False on objects"""
+        count = queryset.update(is_active=False)
+        suffix = count == 1 and "1 object was" or "%s objects were" % count
+        self.message_user(request, "%s marked as inactive." % suffix)
+    deactivate_objects.short_description = "Mark selected objects as inactive"
     
     @staticmethod
     def _update_instance(instance, user):
